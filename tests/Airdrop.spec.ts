@@ -64,6 +64,7 @@ describe('Airdrop', () => {
                     helperCode: codeHelper,
                     merkleRoot: BigInt('0x' + dictCell.hash().toString('hex')),
                     begin: 1100,
+                    admin: users[0].address,
                 },
                 code
             )
@@ -116,6 +117,34 @@ describe('Airdrop', () => {
             exitCode: 708,
         });
         expect(await helper.getClaimed()).toBeFalsy();
+    });
+
+    it('should allow admin to withdraw rewards before begin', async () => {
+        {
+            const result = await airdrop.sendWithdrawJettons(users[0].getSender(), toNano('0.1'), toNano('1000'));
+            expect(result.transactions).toHaveTransaction({
+                on: airdrop.address,
+                success: true,
+            });
+            expect(
+                await blockchain
+                    .openContract(
+                        JettonWallet.createFromAddress(await jettonMinter.getWalletAddressOf(users[0].address))
+                    )
+                    .getJettonBalance()
+            ).toEqual(toNano('1000'));
+        }
+
+        blockchain.now = 1100;
+
+        {
+            const result = await airdrop.sendWithdrawJettons(users[0].getSender(), toNano('0.1'), toNano('1000'));
+            expect(result.transactions).toHaveTransaction({
+                on: airdrop.address,
+                success: false,
+                exitCode: 708,
+            });
+        }
     });
 
     it('should claim one time', async () => {

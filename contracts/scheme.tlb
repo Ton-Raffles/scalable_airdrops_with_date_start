@@ -1,4 +1,4 @@
-_ jetton_wallet:MsgAddressInt merkle_root:uint256 helper_code:^Cell begin:uint64 seed:uint64 = AirdropStorage;
+_ jetton_wallet:MsgAddressInt merkle_root:uint256 helper_code:^Cell begin:uint64 admin:MsgAddressInt seed:uint64 = AirdropStorage;
 
 _ claimed:Bool airdrop:MsgAddressInt proof_hash:uint256 index:uint256 = AirdropHelperStorage;
 
@@ -9,3 +9,5 @@ deploy#610ca46c jetton_wallet:MsgAddressInt = InternalMsgBody;
 claim#_ query_id:uint64 proof:^(MerkleProof (HashmapE 256 AirdropEntry)) = ExternalMsgBody;
 
 process_claim#43c7d5c9 query_id:uint64 proof:^(MerkleProof (HashmapE 256 AirdropEntry)) index:uint256 = InternalMsgBody;
+
+withdraw_jettons#190592b2 query_id:uint64 amount:Coins = InternalMsgBody;

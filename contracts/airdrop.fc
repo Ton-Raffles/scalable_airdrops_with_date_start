@@ -6,6 +6,7 @@ global slice data::jetton_wallet;
 global int data::merkle_root;
 global cell data::helper_code;
 global int data::begin;
+global slice data::admin;
 
 global int context::op;
 global slice context::sender;
@@ -17,6 +18,7 @@ global int context::query_id;
     data::merkle_root = ds~load_uint(256);
     data::helper_code = ds~load_ref();
     data::begin = ds~load_uint(64);
+    data::admin = ds~load_msg_addr();
 }
 
 () save_data() impure inline {
@@ -25,6 +27,7 @@ global int context::query_id;
         .store_uint(data::merkle_root, 256)
         .store_ref(data::helper_code)
         .store_uint(data::begin, 64)
+        .store_slice(data::admin)
     .end_cell());
 }
 
@@ -104,6 +107,13 @@ global int context::query_id;
         throw_unless(error::wrong_sender, equal_slices(context::sender, helper_address(helper_stateinit(proof_cell.cell_hash(), index))));
 
         send_tokens(entry~load_msg_addr(), entry~load_coins());
+    }
+
+    elseif (context::op == op::withdraw_jettons) {
+        throw_unless(error::wrong_sender, equal_slices(context::sender, data::admin));
+        throw_unless(error::wrong_time, now() < data::begin);
+        int amount = in_msg_body~load_coins();
+        send_tokens(context::sender, amount);
     }
 
     else {

@@ -16,6 +16,7 @@ export type AirdropConfig = {
     merkleRoot: bigint;
     helperCode: Cell;
     begin: number;
+    admin: Address;
 };
 
 export function airdropConfigToCell(config: AirdropConfig): Cell {
@@ -24,6 +25,7 @@ export function airdropConfigToCell(config: AirdropConfig): Cell {
         .storeUint(config.merkleRoot, 256)
         .storeRef(config.helperCode)
         .storeUint(config.begin, 64)
+        .storeAddress(config.admin)
         .storeUint(Math.floor(Math.random() * 1e9), 64)
         .endCell();
 }
@@ -73,6 +75,14 @@ export class Airdrop implements Contract {
             value,
             sendMode: SendMode.PAY_GAS_SEPARATELY,
             body: beginCell().storeUint(0x610ca46c, 32).storeUint(0, 64).storeAddress(jettonWallet).endCell(),
+        });
+    }
+
+    async sendWithdrawJettons(provider: ContractProvider, via: Sender, value: bigint, amount: bigint) {
+        await provider.internal(via, {
+            value,
+            sendMode: SendMode.PAY_GAS_SEPARATELY,
+            body: beginCell().storeUint(0x190592b2, 32).storeUint(0, 64).storeCoins(amount).endCell(),
         });
     }
 }
