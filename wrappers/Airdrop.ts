@@ -15,6 +15,7 @@ import {
 export type AirdropConfig = {
     merkleRoot: bigint;
     helperCode: Cell;
+    begin: number;
 };
 
 export function airdropConfigToCell(config: AirdropConfig): Cell {
@@ -22,6 +23,7 @@ export function airdropConfigToCell(config: AirdropConfig): Cell {
         .storeUint(0, 2)
         .storeUint(config.merkleRoot, 256)
         .storeRef(config.helperCode)
+        .storeUint(config.begin, 64)
         .storeUint(Math.floor(Math.random() * 1e9), 64)
         .endCell();
 }

@@ -1,4 +1,4 @@
-import { Blockchain, SandboxContract, TreasuryContract } from '@ton/sandbox';
+import { Blockchain, SandboxContract, TreasuryContract, printTransactionFees } from '@ton/sandbox';
 import { Cell, Dictionary, beginCell, toNano } from '@ton/core';
 import { Airdrop, AirdropEntry, generateEntriesDictionary } from '../wrappers/Airdrop';
 import '@ton/test-utils';
@@ -30,6 +30,7 @@ describe('Airdrop', () => {
 
     beforeEach(async () => {
         blockchain = await Blockchain.create();
+        blockchain.now = 1000;
 
         users = await blockchain.createWallets(1000);
 
@@ -62,6 +63,7 @@ describe('Airdrop', () => {
                 {
                     helperCode: codeHelper,
                     merkleRoot: BigInt('0x' + dictCell.hash().toString('hex')),
+                    begin: 1100,
                 },
                 code
             )
@@ -94,7 +96,31 @@ describe('Airdrop', () => {
         // blockchain and airdrop are ready to use
     });
 
+    it('should not claim until begin', async () => {
+        const merkleProof = dictionary.generateMerkleProof(1n);
+        const helper = blockchain.openContract(
+            AirdropHelper.createFromConfig(
+                {
+                    airdrop: airdrop.address,
+                    index: 1n,
+                    proofHash: merkleProof.hash(),
+                },
+                codeHelper
+            )
+        );
+        await helper.sendDeploy(users[1].getSender());
+        const result = await helper.sendClaim(123n, merkleProof);
+        expect(result.transactions).toHaveTransaction({
+            on: airdrop.address,
+            success: false,
+            exitCode: 708,
+        });
+        expect(await helper.getClaimed()).toBeFalsy();
+    });
+
     it('should claim one time', async () => {
+        blockchain.now = 2000;
+
         const merkleProof = dictionary.generateMerkleProof(1n);
         const helper = blockchain.openContract(
             AirdropHelper.createFromConfig(
@@ -121,6 +147,8 @@ describe('Airdrop', () => {
     });
 
     it('should claim many times', async () => {
+        blockchain.now = 2000;
+
         for (let i = 0; i < 1000; i += 1 + Math.floor(Math.random() * 25)) {
             const merkleProof = dictionary.generateMerkleProof(BigInt(i));
             const helper = blockchain.openContract(
@@ -151,6 +179,8 @@ describe('Airdrop', () => {
     });
 
     it('should not claim if already did', async () => {
+        blockchain.now = 2000;
+
         const merkleProof = dictionary.generateMerkleProof(1n);
 
         const helper = blockchain.openContract(
@@ -207,6 +237,8 @@ describe('Airdrop', () => {
     });
 
     it('should not claim with wrong index', async () => {
+        blockchain.now = 2000;
+
         {
             const merkleProof = dictionary.generateMerkleProof(2n);
             const helper = blockchain.openContract(

@@ -5,6 +5,7 @@
 global slice data::jetton_wallet;
 global int data::merkle_root;
 global cell data::helper_code;
+global int data::begin;
 
 global int context::op;
 global slice context::sender;
@@ -15,6 +16,7 @@ global int context::query_id;
     data::jetton_wallet = ds~load_msg_addr();
     data::merkle_root = ds~load_uint(256);
     data::helper_code = ds~load_ref();
+    data::begin = ds~load_uint(64);
 }
 
 () save_data() impure inline {
@@ -22,6 +24,7 @@ global int context::query_id;
         .store_slice(data::jetton_wallet)
         .store_uint(data::merkle_root, 256)
         .store_ref(data::helper_code)
+        .store_uint(data::begin, 64)
     .end_cell());
 }
 
@@ -84,6 +87,8 @@ global int context::query_id;
     }
 
     elseif (context::op == op::process_claim) {
+        throw_unless(error::wrong_time, now() >= data::begin);
+
         cell proof_cell = in_msg_body~load_ref();
         int index = in_msg_body~load_uint(256);
 
@@ -106,7 +111,7 @@ global int context::query_id;
     }
 }
 
-(slice, int, cell) get_contract_data() method_id {
+(slice, int, cell, int) get_contract_data() method_id {
     load_data();
-    return (data::jetton_wallet, data::merkle_root, data::helper_code);
+    return (data::jetton_wallet, data::merkle_root, data::helper_code, data::begin);
 }

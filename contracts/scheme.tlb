@@ -1,7 +1,6 @@
-_ jetton_wallet:MsgAddressInt merkle_root:uint256 helper_code:^Cell seed:uint64 = AirdropStorage;
+_ jetton_wallet:MsgAddressInt merkle_root:uint256 helper_code:^Cell begin:uint64 seed:uint64 = AirdropStorage;
 
-not_claimed$0 airdrop:MsgAddressInt proof_hash:uint256 index:uint256 = AirdropHelperStorage;
-claimed$1 = AirdropHelperStorage;
+_ claimed:Bool airdrop:MsgAddressInt proof_hash:uint256 index:uint256 = AirdropHelperStorage;
 
 _ address:MsgAddressInt amount:Coins = AirdropEntry;
 
