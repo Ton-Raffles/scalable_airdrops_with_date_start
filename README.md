@@ -1,4 +1,4 @@
-# Scalable Airdrop System
+# Scalable Airdrop System with date start
 
 This repository contains an implementation of a Scalable Airdrop System for the TON blockchain. It can be used to distribute Jettons on-chain to any number of wallets.
 
